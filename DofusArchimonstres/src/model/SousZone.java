@@ -8,15 +8,13 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
-public class SousZone implements Comparable<SousZone>{
+public class SousZone extends Zone{
 
 	private static List<List<SousZone>> sousZones = null;
-	private String nom;
 	private String zone_associe;
 
 	public SousZone(String nom, String zone_associe){
-		super();
-		this.nom = nom;
+		super(nom);
 		this.zone_associe = zone_associe;
 	}
 
@@ -66,14 +64,6 @@ public class SousZone implements Comparable<SousZone>{
 		}
 
 		return sousZones;
-	}
-
-	public int compareTo(SousZone o) {
-		return nom.compareTo(o.getNom());
-	}
-
-	public String getNom(){
-		return nom;
 	}
 
 	public String getZoneAssocie(){
