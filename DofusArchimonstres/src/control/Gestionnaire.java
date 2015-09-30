@@ -223,6 +223,7 @@ public class Gestionnaire implements ActionListener, KeyListener, WindowListener
 			graphic.getPanelMonstres().removeAll();
 			monstresActuels.clear();
 			monstresActuels.addAll(monstres);
+			graphic.getPanelMonstres().setLayout(new GridLayout(monstresActuels.size(), 1));
 
 			for(Monstre monstre : monstresActuels){
 				JPanelMonstre panelMonstre = new JPanelMonstre(this, monstre, graphic.getDescription().isSelected());
