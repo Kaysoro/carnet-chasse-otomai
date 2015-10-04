@@ -11,85 +11,96 @@ import java.util.List;
 public class SousZone extends Zone{
 
 	private static List<List<SousZone>> sousZones = null;
-	private String zone_associe;
+	private Zone zone;
 
-	public SousZone(String nom, String zone_associe){
+	public SousZone(String nom, Zone zone_associe){
 		super(nom);
-		this.zone_associe = zone_associe;
+		this.zone = zone_associe;
 	}
 
-	/**
-	 *  Permet de récupérer les données de la table personnage
-	 * @return Liste de Personnage avec les données associés
-	 */
-	public static List<SousZone> getSousZones(Zone zone){
-
-		List<SousZone> zones = new ArrayList<SousZone>();
-		String nom, zone_associe;
-
-		Connexion connexion = Connexion.getInstance();
-		Connection connection = connexion.getConnection();
-
-		try {
-			PreparedStatement attributionClasse = connection.prepareStatement("SELECT nom, zone_associe FROM souszone WHERE (zone_associe = ?)");
-			attributionClasse.setString(1, zone.getNom()); // Nom de la zone associé
-			ResultSet resultSet = attributionClasse.executeQuery();
-
-			while (resultSet.next()) {
-				nom = resultSet.getString("nom");
-				zone_associe = resultSet.getString("zone_associe");
-
-				zones.add(new SousZone(nom, zone_associe));
-			}
-		} catch (SQLException e) {
-			e.printStackTrace();
-		}
-
-		Collections.sort(zones);
-		return zones;
+	@Override
+	public void incrementerNombre(){
+		nombre++;
+		zone.incrementerNombre();
+		System.out.println(zone.getNom() + " : " + zone.getNombre() + " / " + zone.getMax());
 	}
 
-	/**
-	 *  Permet de récupérer les données de la table personnage
-	 * @return Liste de Personnage avec les données associés
-	 */
+	@Override
+	public void decrementerNombre(){
+		nombre--;
+		zone.decrementerNombre();
+	}
+
 	public static List<List<SousZone>> getAllSousZones(){
 
 		if (sousZones == null){
 			sousZones = new ArrayList<List<SousZone>>();
 			List<Zone> zones = Zone.getZones();
-
 			for (Zone zone : zones)
-				sousZones.add(SousZone.getSousZones(zone));
+				sousZones.add(zone.getSousZones());
 		}
 
 		return sousZones;
 	}
 
-	public String getZoneAssocie(){
-		return zone_associe;
-	}
+	public static void initialisation(){
 
-	public static List<SousZone> getSousZones(Monstre monstre) {
-		List<SousZone> zones = new ArrayList<SousZone>();
 		String nom, zone_associe;
+		List<Zone> zones = Zone.getZones();
 
 		Connexion connexion = Connexion.getInstance();
 		Connection connection = connexion.getConnection();
 
 		try {
-			PreparedStatement attributionClasse = connection.prepareStatement("SELECT nom, souszone_associe " +
+			PreparedStatement attributionClasse = connection.prepareStatement("SELECT souszone.nom, zone_associe " 
+					+ "FROM souszone, zone WHERE (zone_associe = zone.nom)");
+			ResultSet resultSet = attributionClasse.executeQuery();
+			
+			while (resultSet.next()) {
+				nom = resultSet.getString("nom");
+				zone_associe = resultSet.getString("zone_associe");
+				
+				for(Zone zone : zones)
+					if (zone.getNom().equals(zone_associe)){
+						zone.ajouterSousZone(new SousZone(nom, zone));
+						break;
+					}
+			}
+		} catch (SQLException e) {
+			e.printStackTrace();
+		}
+	}
+
+	public static List<SousZone> getSousZones(Monstre monstre) {
+		List<SousZone> zones = new ArrayList<SousZone>();
+		String zone_associe;
+
+		Connexion connexion = Connexion.getInstance();
+		Connection connection = connexion.getConnection();
+
+		try {
+			PreparedStatement attributionClasse = connection.prepareStatement("SELECT souszone_associe " +
 					"FROM souszone, monstre_souszone " +
 					"WHERE ((monstre_associe = ?) " +
-					"AND (nom = souszone_associe));");
+					"AND (souszone.nom = souszone_associe));");
 			attributionClasse.setString(1, monstre.getNom()); // Nom de la zone associé
 			ResultSet resultSet = attributionClasse.executeQuery();
 
 			while (resultSet.next()) {
-				nom = resultSet.getString("nom");
 				zone_associe = resultSet.getString("souszone_associe");
+				
+				boolean trouve = false;
+				for(List<SousZone> zonees : getAllSousZones()){
+					for(SousZone zone : zonees)
+						if (zone.getNom().equals(zone_associe)){
+							zones.add(zone);
+							trouve = true;
+							break;
+						}
+					if (trouve)
+						break;
+				}
 
-				zones.add(new SousZone(nom, zone_associe));
 			}
 		} catch (SQLException e) {
 			e.printStackTrace();
@@ -97,5 +108,9 @@ public class SousZone extends Zone{
 
 		Collections.sort(zones);
 		return zones;
+	}
+
+	public Zone getZoneAssocie(){
+		return zone;
 	}
 }

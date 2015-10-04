@@ -8,13 +8,12 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
-public class Etape implements Comparable<Etape>{
+public class Etape extends Statistiques implements Comparable<Etape>{
 
 	private String nom;
 	private static List<Etape> etapes = null;
-	private static int[] nbMonstres = null;
 
-	public Etape(String nom){
+	private Etape(String nom){
 		super();
 		this.nom = nom;
 	}
@@ -46,19 +45,8 @@ public class Etape implements Comparable<Etape>{
 			}
 
 			Collections.sort(etapes);
-			
-			nbMonstres = new int[etapes.size()];
-			
-			List<Monstre> monstres = Monstre.getMonstres();
-			for(Monstre monstre : monstres)
-				nbMonstres[Integer.parseInt(monstre.getEtapeAssocie().get(0).nom.substring(6)) - 1]++;
 		}
 		return etapes;
-	}
-	
-	public static int getNbMonstresEtape(int etape){
-		getEtapes();
-		return nbMonstres[etape - 1];
 	}
 
 	public int compareTo(Etape o) {
@@ -74,36 +62,42 @@ public class Etape implements Comparable<Etape>{
 	public String getNom(){
 		return nom;
 	}
-
-	public static List<Etape> getEtapes(Monstre monstre) {
-		List<Etape> etapes = new ArrayList<Etape>();
-		String nom;
-
-		Connexion connexion = Connexion.getInstance();
-		Connection connection = connexion.getConnection();
-
-		try {
-			PreparedStatement attributionClasse = connection.prepareStatement("SELECT nom " +
-					"FROM etape, monstre_etape " +
-					"WHERE ((monstre_associe = ?) " +
-					"AND (nom = etape_associe));");
-			attributionClasse.setString(1, monstre.getNom()); // Nom du monstre associé
-			ResultSet resultSet = attributionClasse.executeQuery();
-
-			while (resultSet.next()) {
-				nom = resultSet.getString("nom");
-				etapes.add(new Etape(nom));
-			}
-		} catch (SQLException e) {
-			e.printStackTrace();
-		}
-
-		Collections.sort(etapes);
-		return etapes;
-	}
 	
 	@Override
 	public String toString(){
 		return nom;
 	}
+
+	@Override
+	protected void ajouterMonstre(Monstre monstre) {
+		monstres.add(monstre);
+	}
+
+	public static List<Etape> getEtapes(Monstre monstre) {
+	    List<Etape> etapes = new ArrayList<Etape>();
+
+	    Connexion connexion = Connexion.getInstance();
+	    Connection connection = connexion.getConnection();
+	    try
+	    {
+	      PreparedStatement attributionClasse = connection.prepareStatement("SELECT nom FROM etape, monstre_etape WHERE ((monstre_associe = ?) AND (nom = etape_associe));");
+
+	      attributionClasse.setString(1, monstre.getNom());
+	      ResultSet resultSet = attributionClasse.executeQuery();
+
+	      while (resultSet.next()) {
+	        String nom = resultSet.getString("nom");
+	        for(Etape etape : getEtapes())
+	        	if (etape.getNom().equals(nom)){
+	        		etapes.add(etape);
+	        		break;
+	        	}
+	      }
+	    } catch (SQLException e) {
+	      e.printStackTrace();
+	    }
+
+	    Collections.sort(etapes);
+	    return etapes;
+	  }
 }

@@ -8,14 +8,18 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
-public class Zone implements Comparable<Zone>{
+public class Zone extends Statistiques implements Comparable<Zone>{
 
 	private String nom;
 	private static List<Zone> zones = null;
+	private List<SousZone> sousZones;
+	int max;
 
 	public Zone(String nom){
 		super();
 		this.nom = nom;
+		this.max = 0;
+		sousZones = new ArrayList<SousZone>();
 	}
 
 	/**
@@ -58,4 +62,27 @@ public class Zone implements Comparable<Zone>{
 		return nom;
 	}
 
+	protected void ajouterSousZone(SousZone zone){
+		sousZones.add(zone);
+	}
+
+	public static void initialisation(){
+		List<Zone> zones = getZones();
+		
+		for(Zone zone : zones)
+			zone.initialiser();
+	}
+	
+	public void initialiser() {
+		for(SousZone zone : sousZones)
+			monstres.addAll(zone.getMonstres());
+	}
+	
+	public List<SousZone> getSousZones(){
+		return sousZones;
+	}
+	
+	public String toString(){
+		return super.toString() + " : " + getNom();
+	}
 }

@@ -25,9 +25,6 @@ import java.net.URI;
 import java.net.URISyntaxException;
 import java.text.Normalizer;
 import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.Iterator;
 import java.util.List;
 
 import javax.swing.BorderFactory;
@@ -46,6 +43,7 @@ import model.SousZone;
 import model.Zone;
 import view.ImageTextuelle;
 import view.Interface;
+import view.JButtonZone;
 import view.JPanelMonstre;
 import view.JPanelTree;
 import view.SplashScreen;
@@ -58,13 +56,12 @@ public class Gestionnaire implements ActionListener, KeyListener, WindowListener
 	private Connexion connexion;
 	private List<JButton> list;
 	private List<List<JButton>> sousList;
-	private int[] etapesStats;
-	private List<int[]> zonesStats;
 	private JPanelTree panelTree;
 	private int ongletOuvert = -1;
-	private List<Monstre> monstres, monstresActuels, monstresStats;
+	private List<Monstre> monstres, monstresActuels;
 	private ActionListener monstreAssocieAction;
 	private JButton oldSource;
+	private JButtonZone lastZone;
 	private int oldScrollBarValue;
 
 	public Gestionnaire(){
@@ -82,36 +79,23 @@ public class Gestionnaire implements ActionListener, KeyListener, WindowListener
 		// Lancement du splashscreen
 		splash = new SplashScreen(1000);
 		splash.setChargement(0, "Connexion à la Base de données...");
-		
+
 		// Connexion à la base de donnée
 		Connexion.setDBPath(NOM_BDD);
 		connexion = Connexion.getInstance();
 		connexion.connect();
 		Preferences.getEtapeActuelle();
-		
+
 		//Initialisation statistiques 
-		splash.setChargement(13, "Chargement des Étapes...");
-		etapesStats = new int[Etape.getEtapes().size()];
-		splash.setChargement(26, "Chargement des Zones...");
-		zonesStats = new ArrayList<int[]>(Zone.getZones().size());
-		Iterator<List<SousZone>> it = SousZone.getAllSousZones().iterator();
-
-		for(int i = 0; i < zonesStats.size(); ++i)
-			zonesStats.add(new int[it.next().size()]);
-
-		splash.setChargement(50, "Chargement des Monstres...");
+		splash.setChargement(13, "Chargement des Sous-Zones...");
+		SousZone.initialisation();
+		
+		splash.setChargement(50, "Chargement des Monstes...");
 		monstres = Monstre.getMonstres();
 		monstresActuels = new ArrayList<Monstre>();
-		monstresStats = new ArrayList<Monstre>();
-		splash.setChargement(75, "Chargement des Monstres...");
-		monstresStats.addAll(monstres);
-		Collections.sort(monstresStats, new Comparator<Monstre>(){
-			@Override
-			public int compare(Monstre e1, Monstre e2) {
-				return - e1.getTypeAssocie().get(0).compareTo(e2.getTypeAssocie().get(0));
-			}
-		});
 		
+		splash.setChargement(85, "Liaisons des Monstres aux Zones...");
+		Zone.initialisation();
 		splash.setChargement(100, "Lancement de l'interface...");
 		splash.dispose();
 		graphic = new Interface();
@@ -152,11 +136,7 @@ public class Gestionnaire implements ActionListener, KeyListener, WindowListener
 				rechercher();
 			}
 		};
-		
-		for(Monstre monstre : monstres)
-			if (monstre.getNombrePossede() > 0)
-				etapesStats[Integer.parseInt(monstre.getEtapeAssocie().get(0).getNom().substring(6)) - 1]++;
-		
+
 		majStats();
 
 		// On clique sur l'étape en cours et on met à jour le label
@@ -221,18 +201,7 @@ public class Gestionnaire implements ActionListener, KeyListener, WindowListener
 			graphic.getPanelOuest().revalidate();
 
 			graphic.getPanelMonstres().removeAll();
-			monstresActuels.clear();
-			monstresActuels.addAll(monstres);
-			graphic.getPanelMonstres().setLayout(new GridLayout(monstresActuels.size(), 1));
-
-			for(Monstre monstre : monstresActuels){
-				JPanelMonstre panelMonstre = new JPanelMonstre(this, monstre, graphic.getDescription().isSelected());
-				if (panelMonstre.getMonstreAssocie() != null)
-					panelMonstre.getMonstreAssocie().addActionListener(monstreAssocieAction);
-				graphic.getPanelMonstres().add(panelMonstre);
-			}
-
-			graphic.getPanelMonstres().revalidate();
+			
 			oldSource = (JButton) e.getSource();
 			graphic.repaint();
 			return;
@@ -276,7 +245,6 @@ public class Gestionnaire implements ActionListener, KeyListener, WindowListener
 			Preferences.setEtapeActuelle(etape);
 			graphic.getEtape().setText("Étape Actuelle : " + Preferences.getEtapeActuelle().getNom().substring(6));
 			majStats();
-			//TODO mettre à jour les progressbar des boutons
 		}
 
 		// reset
@@ -286,8 +254,6 @@ public class Gestionnaire implements ActionListener, KeyListener, WindowListener
 				Monstre.reinitialiserMonstres();
 			oldSource.doClick();
 
-			for(int i = 0; i < etapesStats.length; ++i)
-				etapesStats[i] = 0;
 			majStats();
 			oldSource.doClick();
 			return;
@@ -435,22 +401,20 @@ public class Gestionnaire implements ActionListener, KeyListener, WindowListener
 			for (int i = 0; i < list.size(); i++)
 				if (list.get(i) == o){
 					panelTree.refermerListePerso(-1, false);
-
+					List<Etape> etapes = Etape.getEtapes();
 					for(int j = 0; j < list.size(); j++){
-						list.get(j).setIcon(ImageTextuelle.getSuperImage(Etape.getEtapes().get(j).getNom(), (int) (100 * etapesStats[j] / Etape.getNbMonstresEtape(j + 1)), false));
-						list.get(j).setRolloverIcon(ImageTextuelle.getSuperImagePass(Etape.getEtapes().get(j).getNom(), (int) (100 * etapesStats[j] / Etape.getNbMonstresEtape(j + 1)), false));
+						Etape etape = etapes.get(j);
+						list.get(j).setIcon(ImageTextuelle.getSuperImage(etape.getNom(), (int) (100 * etape.getNombre() / etape.getMax()), false));
+						list.get(j).setRolloverIcon(ImageTextuelle.getSuperImagePass(etape.getNom(), (int) (100 * etape.getNombre() / etape.getMax()), false));
 					}
 
-					list.get(i).setIcon(ImageTextuelle.getSuperImage(Etape.getEtapes().get(i).getNom(), (int) (100 * etapesStats[i] / Etape.getNbMonstresEtape(i + 1)), true));
-					list.get(i).setRolloverIcon(ImageTextuelle.getSuperImagePass(Etape.getEtapes().get(i).getNom(), (int) (100 * etapesStats[i] / Etape.getNbMonstresEtape(i + 1)), true));
+					Etape etape = etapes.get(i);
+					list.get(i).setIcon(ImageTextuelle.getSuperImage(etape.getNom(), (int) (100 * etape.getNombre() / etape.getMax()), true));
+					list.get(i).setRolloverIcon(ImageTextuelle.getSuperImagePass(etape.getNom(), (int) (100 * etape.getNombre()  / etape.getMax()), true));
 
 					// On s'occupe de remettre les bons monstres dans la liste de monstres actuels
 					monstresActuels.clear();
-					for(Monstre monstre : monstres)
-						try {
-							if (monstre.getEtapeAssocie().get(0).getNom().equals(Etape.getEtapes().get(i).getNom()))
-								monstresActuels.add(monstre);
-						}catch(IndexOutOfBoundsException e2){}
+					monstresActuels.addAll(etape.getMonstres());
 
 					// On refait les bons panels en fonction de la nouvelle liste
 					graphic.getPanelMonstres().setLayout(new GridLayout(monstresActuels.size(), 1));
@@ -477,7 +441,9 @@ public class Gestionnaire implements ActionListener, KeyListener, WindowListener
 				if (list.get(i) == o){
 
 					int value = graphic.getScrollClasse().getVerticalScrollBar().getValue();
-
+					
+					Zone zone = ((JButtonZone) list.get(i)).getZone();
+					
 					if (ongletOuvert != i){
 						ongletOuvert = i;
 						graphic.getPanelOuest().removeAll();
@@ -496,14 +462,16 @@ public class Gestionnaire implements ActionListener, KeyListener, WindowListener
 
 					graphic.getScrollClasse().getVerticalScrollBar().setValue(value);
 
-					for(int j = 0; j < list.size(); j++){// TODO %
-						list.get(j).setIcon(ImageTextuelle.getSuperImage(Zone.getZones().get(j).getNom(), (int) (100 * Math.random()), false));
-						list.get(j).setRolloverIcon(ImageTextuelle.getSuperImagePass(Zone.getZones().get(j).getNom(), (int) (100 * Math.random()), false));
+					for(int j = 0; j < list.size(); j++){
+						Zone zonee = Zone.getZones().get(j);
+						list.get(j).setIcon(ImageTextuelle.getSuperImage(zonee.getNom(), (int) (100 * zonee.getNombre() / zonee.getMax()), false));
+						list.get(j).setRolloverIcon(ImageTextuelle.getSuperImagePass(zonee.getNom(), (int) (100 * zonee.getNombre() / zonee.getMax()), false));
 					}
 
-					list.get(i).setIcon(ImageTextuelle.getSuperImage(Zone.getZones().get(i).getNom(), (int) (100 * Math.random()), true));
-					list.get(i).setRolloverIcon(ImageTextuelle.getSuperImagePass(Zone.getZones().get(i).getNom(), (int) (100 * Math.random()), true));
+					list.get(i).setIcon(ImageTextuelle.getSuperImage(zone.getNom(), (int) (100 * zone.getNombre() / zone.getMax()), true));
+					list.get(i).setRolloverIcon(ImageTextuelle.getSuperImagePass(zone.getNom(), (int) (100 * zone.getNombre() / zone.getMax()), true));
 
+					// On rafraîchit
 					oldSource = (JButton) e.getSource();
 					return;
 				}
@@ -512,18 +480,39 @@ public class Gestionnaire implements ActionListener, KeyListener, WindowListener
 			// Un button parmi les SOUS zones
 			if(ongletOuvert != - 1){
 				List<JButton> listOfButton = sousList.get(ongletOuvert);
-				List<SousZone> listOfSousZone = SousZone.getAllSousZones().get(ongletOuvert);
 
 				for (int i = 0; i < listOfButton.size(); i++)
 					if (o == listOfButton.get(i)){
-						for (int j = 0; j < listOfButton.size(); j++){// TODO %
-							listOfButton.get(j).setIcon(ImageTextuelle.getSousImage(listOfSousZone.get(j).getNom(), (int) (100 * Math.random()), false));
-							listOfButton.get(j).setRolloverIcon(ImageTextuelle.getSousImagePass(listOfSousZone.get(j).getNom(), (int) (100 * Math.random()), false));
+						
+						Zone zone = ((JButtonZone) list.get(i)).getZone();
+						System.out.println(zone);
+						// On s'occupe de remettre les bons monstres dans la liste de monstres actuels
+						monstresActuels.clear();
+						monstresActuels.addAll(zone.getMonstres());
+
+						// On refait les bons panels en fonction de la nouvelle liste
+						graphic.getPanelMonstres().setLayout(new GridLayout(monstresActuels.size(), 1));
+						graphic.getPanelMonstres().removeAll();
+
+						for(Monstre monstre : monstresActuels){
+							JPanelMonstre panelMonstre = new JPanelMonstre(this, monstre, graphic.getDescription().isSelected());
+							if (panelMonstre.getMonstreAssocie() != null)
+								panelMonstre.getMonstreAssocie().addActionListener(monstreAssocieAction);
+							graphic.getPanelMonstres().add(panelMonstre);
 						}
 
-						listOfButton.get(i).setIcon(ImageTextuelle.getSousImage(listOfSousZone.get(i).getNom(), (int) (100 * Math.random()), true));
-						listOfButton.get(i).setRolloverIcon(ImageTextuelle.getSousImagePass(listOfSousZone.get(i).getNom(), (int) (100 * Math.random()), true));
+						
+						for (JButton button : listOfButton){
+							Zone zonee = ((JButtonZone) button).getZone();
+							button.setIcon(ImageTextuelle.getSousImage(zonee.getNom(), (int) (100 * zonee.getNombre() / zonee.getMax()), false));
+							button.setRolloverIcon(ImageTextuelle.getSousImagePass(zonee.getNom(), (int) (100 * zonee.getNombre() / zonee.getMax()), false));
+						}
 
+						listOfButton.get(i).setIcon(ImageTextuelle.getSousImage(zone.getNom(), (int) (100 * zone.getNombre() / zone.getMax()), true));
+						listOfButton.get(i).setRolloverIcon(ImageTextuelle.getSousImagePass(zone.getNom(), (int) (100 * zone.getNombre() / zone.getMax()), true));
+
+						graphic.getPanelMonstres().revalidate();
+						graphic.repaint();
 						oldSource = (JButton) e.getSource();
 						return;
 					}
@@ -537,9 +526,10 @@ public class Gestionnaire implements ActionListener, KeyListener, WindowListener
 		List<Zone> zones = Zone.getZones();
 		List<JButton> list = new ArrayList<JButton>();
 		for (Zone zone : zones){
-			JButton button = new JButton(ImageTextuelle.getSuperImage(zone.getNom(), (int) (100 * Math.random()), false)); // TODO %
-			button.setRolloverIcon(ImageTextuelle.getSuperImagePass(zone.getNom(), (int) (100 * Math.random()), false));
+			JButtonZone button = new JButtonZone(ImageTextuelle.getSuperImage(zone.getNom(), (int) (100 * zone.getNombre() / zone.getMax()), false), zone);
+			button.setRolloverIcon(ImageTextuelle.getSuperImagePass(zone.getNom(), (int) (100 * zone.getNombre() / zone.getMax()), false));
 			button.addActionListener(this);
+			zone.setButton(button);
 			list.add(button);
 		}
 
@@ -562,10 +552,9 @@ public class Gestionnaire implements ActionListener, KeyListener, WindowListener
 				for (SousZone sousZone : listeSousZone){
 					panel = new JPanel(new GridBagLayout());
 					panel.setBorder(BorderFactory.createEmptyBorder(0, 50, 0, 0));
-
-					button = new JButton(ImageTextuelle.getSousImage(sousZone.getNom(), (int) (100 * Math.random()), false)); //TODO %
-					button.setRolloverIcon(ImageTextuelle.getSousImagePass(sousZone.getNom(), (int) (100 * Math.random()), false));
-
+					button = new JButtonZone(ImageTextuelle.getSousImage(sousZone.getNom(), (int) (100 * sousZone.getNombre() / sousZone.getMax()), false), sousZone);
+					button.setRolloverIcon(ImageTextuelle.getSousImagePass(sousZone.getNom(), (int) (100 * sousZone.getNombre() / sousZone.getMax()), false));
+					sousZone.setButton(button);
 					button.setPreferredSize(new Dimension(350, 70));
 					button.setFocusPainted(false);
 					button.addActionListener(this);
@@ -586,9 +575,11 @@ public class Gestionnaire implements ActionListener, KeyListener, WindowListener
 		List<Etape> etapes = Etape.getEtapes();
 		List<JButton> list = new ArrayList<JButton>();
 		for (int i = 0; i < etapes.size(); ++i){
-			JButton button = new JButton(ImageTextuelle.getSuperImage(etapes.get(i).getNom(), (int) (100 * etapesStats[i] / Etape.getNbMonstresEtape(i + 1)), false));
-			button.setRolloverIcon(ImageTextuelle.getSuperImagePass(etapes.get(i).getNom(), (int) (100 * etapesStats[i] / Etape.getNbMonstresEtape(i + 1)), false));
+			Etape etape = etapes.get(i);
+			JButton button = new JButton(ImageTextuelle.getSuperImage(etapes.get(i).getNom(), (int) (100 * etape.getNombre() / etape.getMax()), false));
+			button.setRolloverIcon(ImageTextuelle.getSuperImagePass(etapes.get(i).getNom(), (int) (100 * etape.getNombre()  / etape.getMax()), false));
 			button.addActionListener(this);
+			etape.setButton(button);
 			list.add(button);
 		}
 
@@ -632,20 +623,45 @@ public class Gestionnaire implements ActionListener, KeyListener, WindowListener
 		graphic.repaint();
 	}
 
-	public void incrementerStatsEtape(int etape){
-		etapesStats[etape - 1]++;
-		int valeur = (int) (etapesStats[etape - 1] * 100 / Etape.getNbMonstresEtape(etape));
-		JButton buttonEtape = list.get(etape - 1);
-		buttonEtape.setIcon(ImageTextuelle.makeStats((ImageIcon) buttonEtape.getIcon(), valeur));
-		buttonEtape.setRolloverIcon(ImageTextuelle.makeStats((ImageIcon) buttonEtape.getRolloverIcon(), valeur));
+	public void incrementerStats(Etape etape, List<SousZone> zones){
+		etape.incrementerNombre();
+
+		for(SousZone zone : zones)
+			zone.incrementerNombre();
+
+		updateMonsterButtons(etape, zones);
 	}
 
-	public void decrementerStatsEtape(int etape){
-		etapesStats[etape - 1]--;
-		int valeur = (int) (etapesStats[etape - 1] * 100 / Etape.getNbMonstresEtape(etape));
-		JButton buttonEtape = list.get(etape - 1);
-		buttonEtape.setIcon(ImageTextuelle.makeStats((ImageIcon) buttonEtape.getIcon(), valeur));
-		buttonEtape.setRolloverIcon(ImageTextuelle.makeStats((ImageIcon) buttonEtape.getRolloverIcon(), valeur));
+	public void decrementerStats(Etape etape, List<SousZone> zones){
+		etape.decrementerNombre();
+
+		for(SousZone zone : zones)
+			zone.decrementerNombre();
+
+		updateMonsterButtons(etape, zones);
+	}
+	
+	public void updateMonsterButtons(Etape etape, List<SousZone> zones){
+		if (graphic.getPanelChoix().isEtapeIsSelected()){
+			int valeur = (int) (etape.getNombre() * 100 / etape.getMax());
+			JButton buttonEtape = etape.getButton();
+			buttonEtape.setIcon(ImageTextuelle.makeStats((ImageIcon) buttonEtape.getIcon(), valeur));
+			buttonEtape.setRolloverIcon(ImageTextuelle.makeStats((ImageIcon) buttonEtape.getRolloverIcon(), valeur));
+		}
+		else if (graphic.getPanelChoix().isZoneIsSelected()){
+			for(SousZone zone : zones){
+				int valeur = (int) (zone.getNombre() * 100 / zone.getMax());
+				JButton buttonZone = zone.getButton();
+				buttonZone.setIcon(ImageTextuelle.makeStats((ImageIcon) buttonZone.getIcon(), valeur));
+				buttonZone.setRolloverIcon(ImageTextuelle.makeStats((ImageIcon) buttonZone.getRolloverIcon(), valeur));
+				Zone zonee = zone.getZoneAssocie();
+				
+				valeur = (int) (zonee.getNombre() * 100 / zonee.getMax());
+				buttonZone = zonee.getButton();
+				buttonZone.setIcon(ImageTextuelle.makeStats((ImageIcon) buttonZone.getIcon(), valeur));
+				buttonZone.setRolloverIcon(ImageTextuelle.makeStats((ImageIcon) buttonZone.getRolloverIcon(), valeur));
+			}
+		}
 	}
 
 	public void majStats(){
@@ -657,24 +673,24 @@ public class Gestionnaire implements ActionListener, KeyListener, WindowListener
 
 		if (etapeActuelle < 17){
 			for(int i = etapeActuelle; i < 17; ++i){
-				nbMonstre += etapesStats[i - 1];
-				nbMax += Etape.getNbMonstresEtape(i);
+				nbMonstre += Etape.getEtapes().get(i - 1).getNombre();
+				nbMax += Etape.getEtapes().get(i - 1).getMax();
 			}
 
 			st.append(nbMonstre + " / " + nbMax + " monstres<br/>");
 			nbMonstre = 0; nbMax = 0;
 
 			for(int i = 17; i < 20; ++i){
-				nbMonstre += etapesStats[i - 1];
-				nbMax += Etape.getNbMonstresEtape(i);
+				nbMonstre += Etape.getEtapes().get(i - 1).getNombre();
+				nbMax += Etape.getEtapes().get(i - 1).getMax();
 			}
 
 			st.append(nbMonstre + " / " + nbMax + " boss<br/>");
 			nbMonstre = 0; nbMax = 0;
 
 			for(int i = 20; i < 35; ++i){
-				nbMonstre += etapesStats[i - 1];
-				nbMax += Etape.getNbMonstresEtape(i);
+				nbMonstre += Etape.getEtapes().get(i - 1).getNombre();
+				nbMax += Etape.getEtapes().get(i - 1).getMax();
 			}
 
 			st.append(nbMonstre + " / " + nbMax + " archi-monstres<br/>");
@@ -683,24 +699,24 @@ public class Gestionnaire implements ActionListener, KeyListener, WindowListener
 
 			if (etapeActuelle < 20){
 				for(int i = etapeActuelle; i < 20; ++i){
-					nbMonstre += etapesStats[i - 1];
-					nbMax += Etape.getNbMonstresEtape(i);
+					nbMonstre += Etape.getEtapes().get(i - 1).getNombre();
+					nbMax += Etape.getEtapes().get(i - 1).getMax();
 				}
 
 				st.append(nbMonstre + " / " + nbMax + " boss<br/>");
 				nbMonstre = 0; nbMax = 0;
 
 				for(int i = 20; i < 35; ++i){
-					nbMonstre += etapesStats[i - 1];
-					nbMax += Etape.getNbMonstresEtape(i);
+					nbMonstre += Etape.getEtapes().get(i - 1).getNombre();
+					nbMax += Etape.getEtapes().get(i - 1).getMax();
 				}
 
 				st.append(nbMonstre + " / " + nbMax + " archi-monstres<br/>");
 			}
 			else {
 				for(int i = etapeActuelle; i < 35; ++i){
-					nbMonstre += etapesStats[i - 1];
-					nbMax += Etape.getNbMonstresEtape(i);
+					nbMonstre += Etape.getEtapes().get(i - 1).getNombre();
+					nbMax += Etape.getEtapes().get(i - 1).getMax();
 				}
 
 				st.append(nbMonstre + " / " + nbMax + " archi-monstres<br/>");
@@ -713,19 +729,19 @@ public class Gestionnaire implements ActionListener, KeyListener, WindowListener
 
 	public void changementAuto() {
 		int etape = Integer.parseInt(Preferences.getEtapeActuelle().getNom().substring(6)) - 1;
-		
+
 		//TODO -1 aux captures de cette étape
 		etape = (etape + 1) % Etape.getEtapes().size();
-		
+
 		Preferences.setEtapeActuelle(Etape.getEtapes().get(etape - 1));
 		graphic.getEtape().setText("Étape Actuelle : " + Preferences.getEtapeActuelle().getNom().substring(6));
 		majStats();
-		
+
 		if (etape == 0){
 			//TODO JDialog fin quête
 		}
 	}
-	
+
 	public boolean isFileExist(String nomFile){
 
 		boolean result = false;

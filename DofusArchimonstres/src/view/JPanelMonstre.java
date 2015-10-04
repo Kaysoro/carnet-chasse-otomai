@@ -110,7 +110,7 @@ public class JPanelMonstre extends JPanel {
 				nombrePossede.setText(monstre.getNombrePossede() + "");
 				changerCouleur();
 				if (monstre.getNombrePossede() == 1)
-					gestionnaire.incrementerStatsEtape(Integer.parseInt(monstre.getEtapeAssocie().get(0).getNom().substring(6)));
+					gestionnaire.incrementerStats(monstre.getEtapeAssocie().get(0), monstre.getZoneAssocie());
 				gestionnaire.majStats();
 			}
 		});
@@ -125,7 +125,7 @@ public class JPanelMonstre extends JPanel {
 				nombrePossede.setText(monstre.getNombrePossede() + "");
 				changerCouleur();
 				if (monstre.getNombrePossede() == 0 && monstre.getNombrePossede() != OldNombrePossede)
-					gestionnaire.decrementerStatsEtape(Integer.parseInt(monstre.getEtapeAssocie().get(0).getNom().substring(6)));
+					gestionnaire.decrementerStats(monstre.getEtapeAssocie().get(0), monstre.getZoneAssocie());
 				gestionnaire.majStats();
 			}
 		});

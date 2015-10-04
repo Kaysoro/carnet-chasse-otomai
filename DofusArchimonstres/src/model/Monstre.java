@@ -126,7 +126,23 @@ public class Monstre implements Comparable<Monstre>{
 							monstreAssocie = monstresTemporaire.get(j);
 							break;
 						}
-					monstres.add(new Monstre(monstresTemporaire.get(i), monstreAssocie, types, zones, etapes));
+					Monstre monstre = new Monstre(monstresTemporaire.get(i), monstreAssocie, types, zones, etapes);
+					monstres.add(monstre);
+
+					// On l'associe à ces données
+					Etape etape = monstre.getEtapeAssocie().get(0);
+					etape.ajouterMonstre(monstre);
+
+					if (monstre.getNombrePossede() > 0)
+						etape.incrementerNombre();
+					
+					for(Zone zone : zones){
+
+						zone.ajouterMonstre(monstre);
+						//TODO System.out.println(zone + " " + zone.getMax());
+						if (monstre.getNombrePossede() > 0)
+							zone.incrementerNombre();
+					}
 				}
 
 			} catch (SQLException e) {
@@ -199,6 +215,12 @@ public class Monstre implements Comparable<Monstre>{
 	}
 
 	private void reinitialiserNombre(){
+		if (nombrePossede > 0){
+			getEtapeAssocie().get(0).decrementerNombre();
+
+			for(SousZone zone : getZoneAssocie())
+				zone.decrementerNombre();
+		}
 		nombrePossede = 0;
 	}
 
@@ -265,7 +287,7 @@ public class Monstre implements Comparable<Monstre>{
 	public List<SousZone> getZoneAssocie() {
 		return zoneAssocie;
 	}
-	
+
 	@Override
 	public String toString(){
 		return nom + " // " + niveau 
