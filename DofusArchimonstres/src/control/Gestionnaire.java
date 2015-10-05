@@ -675,7 +675,8 @@ public class Gestionnaire implements ActionListener, KeyListener, WindowListener
 				int valeur = (int) (zone.getNombre() * 100 / zone.getMax());
 				JButtonZone buttonZone = (JButtonZone) zone.getButton();
 				//TODO icon fausse
-				System.out.println(buttonZone);
+				if (buttonZone == null)
+					System.out.println(zone);
 				buttonZone.setIcon(ImageTextuelle.makeStats((ImageIcon) buttonZone.getIcon(), valeur));
 				buttonZone.setRolloverIcon(ImageTextuelle.makeStats((ImageIcon) buttonZone.getRolloverIcon(), valeur));
 				Zone zonee = zone.getZoneAssocie();

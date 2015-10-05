@@ -8,6 +8,8 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
+import javax.swing.JButton;
+
 public class SousZone extends Zone{
 
 	private static List<List<SousZone>> sousZones = null;
@@ -28,6 +30,13 @@ public class SousZone extends Zone{
 	public void decrementerNombre(){
 		nombre--;
 		zone.decrementerNombre();
+	}
+	
+	@Override
+	public JButton getButton(){
+		if (button == null)
+			button = zone.getButton();
+		return button;
 	}
 
 	public static List<List<SousZone>> getAllSousZones(){
