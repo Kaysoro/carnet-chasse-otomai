@@ -139,7 +139,6 @@ public class Monstre implements Comparable<Monstre>{
 					for(Zone zone : zones){
 
 						zone.ajouterMonstre(monstre);
-						//TODO System.out.println(zone + " " + zone.getMax());
 						if (monstre.getNombrePossede() > 0)
 							zone.incrementerNombre();
 					}

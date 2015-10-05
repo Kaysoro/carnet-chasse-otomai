@@ -61,7 +61,6 @@ public class Gestionnaire implements ActionListener, KeyListener, WindowListener
 	private List<Monstre> monstres, monstresActuels;
 	private ActionListener monstreAssocieAction;
 	private JButton oldSource;
-	private JButtonZone lastZone;
 	private int oldScrollBarValue;
 
 	public Gestionnaire(){
@@ -89,11 +88,11 @@ public class Gestionnaire implements ActionListener, KeyListener, WindowListener
 		//Initialisation statistiques 
 		splash.setChargement(13, "Chargement des Sous-Zones...");
 		SousZone.initialisation();
-		
+
 		splash.setChargement(50, "Chargement des Monstes...");
 		monstres = Monstre.getMonstres();
 		monstresActuels = new ArrayList<Monstre>();
-		
+
 		splash.setChargement(85, "Liaisons des Monstres aux Zones...");
 		Zone.initialisation();
 		splash.setChargement(100, "Lancement de l'interface...");
@@ -201,7 +200,7 @@ public class Gestionnaire implements ActionListener, KeyListener, WindowListener
 			graphic.getPanelOuest().revalidate();
 
 			graphic.getPanelMonstres().removeAll();
-			
+
 			oldSource = (JButton) e.getSource();
 			graphic.repaint();
 			return;
@@ -441,9 +440,36 @@ public class Gestionnaire implements ActionListener, KeyListener, WindowListener
 				if (list.get(i) == o){
 
 					int value = graphic.getScrollClasse().getVerticalScrollBar().getValue();
-					
+
 					Zone zone = ((JButtonZone) list.get(i)).getZone();
-					
+
+					// On s'occupe de remettre les bons monstres dans la liste de monstres actuels
+					if (zone.getSousZones().size() == 1){
+						monstresActuels.clear();
+						monstresActuels.addAll(zone.getMonstres());
+
+						// On refait les bons panels en fonction de la nouvelle liste
+						graphic.getPanelMonstres().setLayout(new GridLayout(monstresActuels.size(), 1));
+						graphic.getPanelMonstres().removeAll();
+
+						for(Monstre monstre : monstresActuels){
+							JPanelMonstre panelMonstre = new JPanelMonstre(this, monstre, graphic.getDescription().isSelected());
+							if (panelMonstre.getMonstreAssocie() != null)
+								panelMonstre.getMonstreAssocie().addActionListener(monstreAssocieAction);
+							graphic.getPanelMonstres().add(panelMonstre);
+						}
+
+
+						for (JButton button : list){
+							Zone zonee = ((JButtonZone) button).getZone();
+							button.setIcon(ImageTextuelle.getSuperImage(zonee.getNom(), (int) (100 * zonee.getNombre() / zonee.getMax()), false));
+							button.setRolloverIcon(ImageTextuelle.getSuperImagePass(zonee.getNom(), (int) (100 * zonee.getNombre() / zonee.getMax()), false));
+						}
+					}
+
+					list.get(i).setIcon(ImageTextuelle.getSuperImage(zone.getNom(), (int) (100 * zone.getNombre() / zone.getMax()), true));
+					list.get(i).setRolloverIcon(ImageTextuelle.getSuperImagePass(zone.getNom(), (int) (100 * zone.getNombre() / zone.getMax()), true));
+
 					if (ongletOuvert != i){
 						ongletOuvert = i;
 						graphic.getPanelOuest().removeAll();
@@ -472,6 +498,8 @@ public class Gestionnaire implements ActionListener, KeyListener, WindowListener
 					list.get(i).setRolloverIcon(ImageTextuelle.getSuperImagePass(zone.getNom(), (int) (100 * zone.getNombre() / zone.getMax()), true));
 
 					// On rafraîchit
+					graphic.getPanelMonstres().revalidate();
+					graphic.repaint();
 					oldSource = (JButton) e.getSource();
 					return;
 				}
@@ -483,9 +511,9 @@ public class Gestionnaire implements ActionListener, KeyListener, WindowListener
 
 				for (int i = 0; i < listOfButton.size(); i++)
 					if (o == listOfButton.get(i)){
-						
-						Zone zone = ((JButtonZone) list.get(i)).getZone();
-						System.out.println(zone);
+
+						Zone zone = ((JButtonZone) listOfButton.get(i)).getZone();
+
 						// On s'occupe de remettre les bons monstres dans la liste de monstres actuels
 						monstresActuels.clear();
 						monstresActuels.addAll(zone.getMonstres());
@@ -501,7 +529,7 @@ public class Gestionnaire implements ActionListener, KeyListener, WindowListener
 							graphic.getPanelMonstres().add(panelMonstre);
 						}
 
-						
+
 						for (JButton button : listOfButton){
 							Zone zonee = ((JButtonZone) button).getZone();
 							button.setIcon(ImageTextuelle.getSousImage(zonee.getNom(), (int) (100 * zonee.getNombre() / zonee.getMax()), false));
@@ -640,7 +668,7 @@ public class Gestionnaire implements ActionListener, KeyListener, WindowListener
 
 		updateMonsterButtons(etape, zones);
 	}
-	
+
 	public void updateMonsterButtons(Etape etape, List<SousZone> zones){
 		if (graphic.getPanelChoix().isEtapeIsSelected()){
 			int valeur = (int) (etape.getNombre() * 100 / etape.getMax());
@@ -651,13 +679,16 @@ public class Gestionnaire implements ActionListener, KeyListener, WindowListener
 		else if (graphic.getPanelChoix().isZoneIsSelected()){
 			for(SousZone zone : zones){
 				int valeur = (int) (zone.getNombre() * 100 / zone.getMax());
-				JButton buttonZone = zone.getButton();
+				JButtonZone buttonZone = (JButtonZone) zone.getButton();
+				//TODO icon fausse
+				if (buttonZone != null)
+					System.out.println(buttonZone.getZone());
 				buttonZone.setIcon(ImageTextuelle.makeStats((ImageIcon) buttonZone.getIcon(), valeur));
 				buttonZone.setRolloverIcon(ImageTextuelle.makeStats((ImageIcon) buttonZone.getRolloverIcon(), valeur));
 				Zone zonee = zone.getZoneAssocie();
-				
+
 				valeur = (int) (zonee.getNombre() * 100 / zonee.getMax());
-				buttonZone = zonee.getButton();
+				buttonZone = (JButtonZone) zonee.getButton();
 				buttonZone.setIcon(ImageTextuelle.makeStats((ImageIcon) buttonZone.getIcon(), valeur));
 				buttonZone.setRolloverIcon(ImageTextuelle.makeStats((ImageIcon) buttonZone.getRolloverIcon(), valeur));
 			}

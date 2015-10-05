@@ -22,7 +22,6 @@ public class SousZone extends Zone{
 	public void incrementerNombre(){
 		nombre++;
 		zone.incrementerNombre();
-		System.out.println(zone.getNom() + " : " + zone.getNombre() + " / " + zone.getMax());
 	}
 
 	@Override
