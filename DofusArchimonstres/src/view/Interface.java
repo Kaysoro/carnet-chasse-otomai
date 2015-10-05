@@ -30,6 +30,8 @@ import javax.swing.UnsupportedLookAndFeelException;
 public class Interface extends JFrame {
 
 	private static final long serialVersionUID = 1L;
+	
+	public static final int WIDTH_MONSTER = 755;
 	private final Color backgroundColor = new Color(243, 227, 194);
 	private final Color foregroundColor = new Color(34, 177, 76);
 	private final Dimension dimensionImgScroll = new Dimension(400, 70);
@@ -165,9 +167,11 @@ public class Interface extends JFrame {
 		panelNordEst.add(panelInfo, BorderLayout.CENTER);
 		
 		//Gestion du panel contenant les mobs
-		panelMonstres = new JPanel();
+		panelMonstres = new JPanel(new WrapLayout(0, 0, 0));
 		scrollMonstre = new JScrollPane(panelMonstres);
 		scrollMonstre.getVerticalScrollBar().setUnitIncrement(20);
+		scrollMonstre.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_ALWAYS);
+		scrollMonstre.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);
 		
 		// gestion du panel Est
 		panelEst = new JPanel(new BorderLayout());
@@ -188,7 +192,7 @@ public class Interface extends JFrame {
 		scrollClasse.setPreferredSize(new Dimension(dimensionImgScroll.width + 20, 1));
 		scrollClasse.getVerticalScrollBar().setUnitIncrement(15);
 	}
-
+	
 	public JScrollPane getScrollClasse(){
 		return scrollClasse;
 	}

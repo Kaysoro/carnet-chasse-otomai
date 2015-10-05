@@ -11,7 +11,6 @@ import java.awt.Cursor;
 import java.awt.Desktop;
 import java.awt.Dimension;
 import java.awt.GridBagLayout;
-import java.awt.GridLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.KeyEvent;
@@ -167,13 +166,12 @@ public class Gestionnaire implements ActionListener, KeyListener, WindowListener
 			monstresActuels.clear();
 			monstresActuels.addAll(monstres);
 
-			graphic.getPanelMonstres().setLayout(new GridLayout(monstresActuels.size(), 1));
+			
 
 			for(Monstre monstre : monstresActuels){
 				JPanelMonstre panelMonstre = new JPanelMonstre(this, monstre, graphic.getDescription().isSelected());
 				if (panelMonstre.getMonstreAssocie() != null)
 					panelMonstre.getMonstreAssocie().addActionListener(monstreAssocieAction);
-
 				graphic.getPanelMonstres().add(panelMonstre);
 			}
 
@@ -416,7 +414,7 @@ public class Gestionnaire implements ActionListener, KeyListener, WindowListener
 					monstresActuels.addAll(etape.getMonstres());
 
 					// On refait les bons panels en fonction de la nouvelle liste
-					graphic.getPanelMonstres().setLayout(new GridLayout(monstresActuels.size(), 1));
+					
 					graphic.getPanelMonstres().removeAll();
 
 					for(Monstre monstre : monstresActuels){
@@ -425,7 +423,7 @@ public class Gestionnaire implements ActionListener, KeyListener, WindowListener
 							panelMonstre.getMonstreAssocie().addActionListener(monstreAssocieAction);
 						graphic.getPanelMonstres().add(panelMonstre);
 					}
-
+					
 					// On rafraîchit
 					graphic.getPanelMonstres().revalidate();
 					oldSource = (JButton) e.getSource();
@@ -449,7 +447,7 @@ public class Gestionnaire implements ActionListener, KeyListener, WindowListener
 						monstresActuels.addAll(zone.getMonstres());
 
 						// On refait les bons panels en fonction de la nouvelle liste
-						graphic.getPanelMonstres().setLayout(new GridLayout(monstresActuels.size(), 1));
+						
 						graphic.getPanelMonstres().removeAll();
 
 						for(Monstre monstre : monstresActuels){
@@ -458,7 +456,6 @@ public class Gestionnaire implements ActionListener, KeyListener, WindowListener
 								panelMonstre.getMonstreAssocie().addActionListener(monstreAssocieAction);
 							graphic.getPanelMonstres().add(panelMonstre);
 						}
-
 
 						for (JButton button : list){
 							Zone zonee = ((JButtonZone) button).getZone();
@@ -519,7 +516,7 @@ public class Gestionnaire implements ActionListener, KeyListener, WindowListener
 						monstresActuels.addAll(zone.getMonstres());
 
 						// On refait les bons panels en fonction de la nouvelle liste
-						graphic.getPanelMonstres().setLayout(new GridLayout(monstresActuels.size(), 1));
+						
 						graphic.getPanelMonstres().removeAll();
 
 						for(Monstre monstre : monstresActuels){
@@ -528,7 +525,6 @@ public class Gestionnaire implements ActionListener, KeyListener, WindowListener
 								panelMonstre.getMonstreAssocie().addActionListener(monstreAssocieAction);
 							graphic.getPanelMonstres().add(panelMonstre);
 						}
-
 
 						for (JButton button : listOfButton){
 							Zone zonee = ((JButtonZone) button).getZone();
@@ -639,7 +635,6 @@ public class Gestionnaire implements ActionListener, KeyListener, WindowListener
 						.contains(Normalizer.normalize(nomEcrit, Normalizer.Form.NFD)
 								.replaceAll("\\p{InCombiningDiacriticalMarks}+", "").toLowerCase())){
 					monstresActuels.add(monstre);
-
 					JPanelMonstre panelMonstre = new JPanelMonstre(this, monstre, graphic.getDescription().isSelected());
 					if (panelMonstre.getMonstreAssocie() != null)
 						panelMonstre.getMonstreAssocie().addActionListener(monstreAssocieAction);
@@ -772,7 +767,7 @@ public class Gestionnaire implements ActionListener, KeyListener, WindowListener
 			//TODO JDialog fin quête
 		}
 	}
-
+	
 	public boolean isFileExist(String nomFile){
 
 		boolean result = false;
@@ -786,7 +781,7 @@ public class Gestionnaire implements ActionListener, KeyListener, WindowListener
 
 		return result;
 	}
-
+	
 	public void windowClosing(WindowEvent e) {
 
 		connexion.close();

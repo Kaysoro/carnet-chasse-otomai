@@ -31,6 +31,12 @@ public class JPanelMonstre extends JPanel {
 
 	public JPanelMonstre(final Gestionnaire gestionnaire, final Monstre monstre, boolean isDetailed){
 		super();
+		
+		if (isDetailed)
+			setPreferredSize(new Dimension(755, TAILLE_MAXIMALE));
+		else
+			setPreferredSize(new Dimension(755, TAILLE_MINIMALE));
+		
 		this.monstre = monstre;
 		nom = new JLabel(monstre.getNom());
 		nom.setFont(new Font("Sherif", Font.PLAIN, 16));
