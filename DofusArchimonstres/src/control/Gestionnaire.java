@@ -85,13 +85,12 @@ public class Gestionnaire implements ActionListener, KeyListener, WindowListener
 		Preferences.getEtapeActuelle();
 
 		//Initialisation statistiques 
-		splash.setChargement(13, "Chargement des Sous-Zones...");
 		SousZone.initialisation();
-
-		splash.setChargement(50, "Chargement des Monstes...");
+		splash.setChargement(26, "Chargement des Monstes...");
 		monstres = Monstre.getMonstres();
 		monstresActuels = new ArrayList<Monstre>();
-
+		splash.setChargement(62, "Chargement des Sous-Zones...");
+		SousZone.sortMonstres();
 		splash.setChargement(85, "Liaisons des Monstres aux Zones...");
 		Zone.initialisation();
 		splash.setChargement(100, "Lancement de l'interface...");
@@ -676,8 +675,7 @@ public class Gestionnaire implements ActionListener, KeyListener, WindowListener
 				int valeur = (int) (zone.getNombre() * 100 / zone.getMax());
 				JButtonZone buttonZone = (JButtonZone) zone.getButton();
 				//TODO icon fausse
-				if (buttonZone != null)
-					System.out.println(buttonZone.getZone());
+				System.out.println(buttonZone);
 				buttonZone.setIcon(ImageTextuelle.makeStats((ImageIcon) buttonZone.getIcon(), valeur));
 				buttonZone.setRolloverIcon(ImageTextuelle.makeStats((ImageIcon) buttonZone.getRolloverIcon(), valeur));
 				Zone zonee = zone.getZoneAssocie();

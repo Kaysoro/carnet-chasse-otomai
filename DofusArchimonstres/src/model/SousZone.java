@@ -112,4 +112,10 @@ public class SousZone extends Zone{
 	public Zone getZoneAssocie(){
 		return zone;
 	}
+	
+	public static void sortMonstres(){
+		for(List<SousZone> szs : getAllSousZones())
+			for(SousZone sz : szs)
+				Collections.sort(sz.getMonstres());
+	}
 }
