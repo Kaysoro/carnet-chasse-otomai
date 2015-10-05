@@ -349,7 +349,7 @@ public class Gestionnaire implements ActionListener, KeyListener, WindowListener
 			textaPropos2.setBorder(BorderFactory.createEmptyBorder(-3, 0, 0, 0));
 			JLabel textaPropos3 = new JLabel("<html><br /><p align=center>Je tiens à remercier Grenouille et MonsieurChance pour leur travail,<br />"
 					+ " sur lequel je me suis largement inspiré.</p>"
-					+ "<br /><br /><p align=center>Version de l'application : 0.8<br>Optimisé pour Dofus 2.30.5</p>"
+					+ "<br /><br /><p align=center>Version de l'application : 0.9<br>Optimisé pour Dofus 2.30.5</p>"
 					+ "<br /><p align=center>Certaines illustrations sont la propriété d'Ankama Studio"
 					+ "<br /> et du jeu Dofus - Tous droits réservés</p></html>");
 
@@ -674,9 +674,6 @@ public class Gestionnaire implements ActionListener, KeyListener, WindowListener
 			for(SousZone zone : zones){
 				int valeur = (int) (zone.getNombre() * 100 / zone.getMax());
 				JButtonZone buttonZone = (JButtonZone) zone.getButton();
-				//TODO icon fausse
-				if (buttonZone == null)
-					System.out.println(zone);
 				buttonZone.setIcon(ImageTextuelle.makeStats((ImageIcon) buttonZone.getIcon(), valeur));
 				buttonZone.setRolloverIcon(ImageTextuelle.makeStats((ImageIcon) buttonZone.getRolloverIcon(), valeur));
 				Zone zonee = zone.getZoneAssocie();
