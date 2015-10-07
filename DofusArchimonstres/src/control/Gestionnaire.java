@@ -663,6 +663,8 @@ public class Gestionnaire implements ActionListener, KeyListener, WindowListener
 			zone.incrementerNombre();
 
 		changementAuto();
+		
+		updateMonsterButtons(etape, zones);
 	}
 
 	public void decrementerStats(Etape etape, List<SousZone> zones){
@@ -770,7 +772,7 @@ public class Gestionnaire implements ActionListener, KeyListener, WindowListener
 
 					for(Monstre monstre : monstres){
 						monstre.decrementerNombre();
-						//TODO problème : pas de mise à jour des stats et des boutons : monstre pas décrémenté
+						decrementerStats(monstre.getEtapeAssocie().get(0), monstre.getZoneAssocie());
 					}
 				}
 
