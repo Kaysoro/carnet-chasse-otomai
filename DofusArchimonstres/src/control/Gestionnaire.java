@@ -100,6 +100,8 @@ public class Gestionnaire implements ActionListener, KeyListener, WindowListener
 		// On initialise les préférences
 		graphic.getDescription().setSelected(Preferences.isDetailed());
 		graphic.getTransition().setSelected(Preferences.isChanged());
+		graphic.getRetrait().setSelected(Preferences.isRemoved());
+
 		graphic.getEtape().setText("Étape Actuelle : " + Preferences.getEtapeActuelle().getNom().substring(6));
 
 		// Listeners du menu
@@ -107,6 +109,7 @@ public class Gestionnaire implements ActionListener, KeyListener, WindowListener
 		graphic.getAPropos().addActionListener(this);
 		graphic.getChangement().addActionListener(this);
 		graphic.getTransition().addActionListener(this);
+		graphic.getRetrait().addActionListener(this);
 		graphic.getReset().addActionListener(this);
 		graphic.getPetitReset().addActionListener(this);
 		graphic.getReportBug().addActionListener(this);
@@ -165,7 +168,7 @@ public class Gestionnaire implements ActionListener, KeyListener, WindowListener
 			monstresActuels.clear();
 			monstresActuels.addAll(monstres);
 
-			
+
 
 			for(Monstre monstre : monstresActuels){
 				JPanelMonstre panelMonstre = new JPanelMonstre(this, monstre, graphic.getDescription().isSelected());
@@ -241,6 +244,9 @@ public class Gestionnaire implements ActionListener, KeyListener, WindowListener
 			Preferences.setEtapeActuelle(etape);
 			graphic.getEtape().setText("Étape Actuelle : " + Preferences.getEtapeActuelle().getNom().substring(6));
 			majStats();
+			
+			if (graphic.getPanelChoix().isEtapeIsSelected())
+				etape.getButton().doClick();
 		}
 
 		// reset
@@ -267,6 +273,11 @@ public class Gestionnaire implements ActionListener, KeyListener, WindowListener
 
 			if (graphic.getTransition().isSelected())
 				changementAuto();
+		}
+
+		//Retrait
+		if (o == graphic.getRetrait()){
+			Preferences.setIsRemoved(graphic.getRetrait().isSelected());
 		}
 
 		//Description
@@ -413,7 +424,7 @@ public class Gestionnaire implements ActionListener, KeyListener, WindowListener
 					monstresActuels.addAll(etape.getMonstres());
 
 					// On refait les bons panels en fonction de la nouvelle liste
-					
+
 					graphic.getPanelMonstres().removeAll();
 
 					for(Monstre monstre : monstresActuels){
@@ -422,7 +433,7 @@ public class Gestionnaire implements ActionListener, KeyListener, WindowListener
 							panelMonstre.getMonstreAssocie().addActionListener(monstreAssocieAction);
 						graphic.getPanelMonstres().add(panelMonstre);
 					}
-					
+
 					// On rafraîchit
 					graphic.getPanelMonstres().revalidate();
 					oldSource = (JButton) e.getSource();
@@ -446,7 +457,7 @@ public class Gestionnaire implements ActionListener, KeyListener, WindowListener
 						monstresActuels.addAll(zone.getMonstres());
 
 						// On refait les bons panels en fonction de la nouvelle liste
-						
+
 						graphic.getPanelMonstres().removeAll();
 
 						for(Monstre monstre : monstresActuels){
@@ -515,7 +526,7 @@ public class Gestionnaire implements ActionListener, KeyListener, WindowListener
 						monstresActuels.addAll(zone.getMonstres());
 
 						// On refait les bons panels en fonction de la nouvelle liste
-						
+
 						graphic.getPanelMonstres().removeAll();
 
 						for(Monstre monstre : monstresActuels){
@@ -651,7 +662,7 @@ public class Gestionnaire implements ActionListener, KeyListener, WindowListener
 		for(SousZone zone : zones)
 			zone.incrementerNombre();
 
-		updateMonsterButtons(etape, zones);
+		changementAuto();
 	}
 
 	public void decrementerStats(Etape etape, List<SousZone> zones){
@@ -750,20 +761,42 @@ public class Gestionnaire implements ActionListener, KeyListener, WindowListener
 	}
 
 	public void changementAuto() {
-		int etape = Integer.parseInt(Preferences.getEtapeActuelle().getNom().substring(6)) - 1;
+		if (graphic.getTransition().isSelected()){
+			int etape = Integer.parseInt(Preferences.getEtapeActuelle().getNom().substring(6)) - 1;
+			int stats = Etape.getEtapes().get(etape).getNombre() / Etape.getEtapes().get(etape).getMax();
+			if (stats == 1){
+				if (graphic.getRetrait().isSelected()){
+					List<Monstre> monstres = Etape.getEtapes().get(etape).getMonstres();
 
-		//TODO -1 aux captures de cette étape
-		etape = (etape + 1) % Etape.getEtapes().size();
+					for(Monstre monstre : monstres){
+						monstre.decrementerNombre();
+						//TODO problème : pas de mise à jour des stats et des boutons : monstre pas décrémenté
+					}
+				}
 
-		Preferences.setEtapeActuelle(Etape.getEtapes().get(etape - 1));
-		graphic.getEtape().setText("Étape Actuelle : " + Preferences.getEtapeActuelle().getNom().substring(6));
-		majStats();
+				etape = (etape + 1) % Etape.getEtapes().size();
+				Preferences.setEtapeActuelle(Etape.getEtapes().get(etape));
+				graphic.getEtape().setText("Étape Actuelle : " + Preferences.getEtapeActuelle().getNom().substring(6));
+				majStats();
 
-		if (etape == 0){
-			//TODO JDialog fin quête
+				if (etape == 0){
+					//TODO JDialog fin quête
+					etape++;
+				}
+				if (graphic.getPanelChoix().isEtapeIsSelected())
+					Etape.getEtapes().get(etape).getButton().doClick();
+				else
+					oldSource.doClick();
+				changementAuto();
+			}
 		}
 	}
-	
+
+	public SousZone calculProposition(){
+		//TODO
+		return null;
+	}
+
 	public boolean isFileExist(String nomFile){
 
 		boolean result = false;
@@ -777,7 +810,7 @@ public class Gestionnaire implements ActionListener, KeyListener, WindowListener
 
 		return result;
 	}
-	
+
 	public void windowClosing(WindowEvent e) {
 
 		connexion.close();

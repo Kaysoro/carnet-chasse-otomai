@@ -40,7 +40,7 @@ public class Interface extends JFrame {
 	private JScrollPane scrollClasse, scrollMonstre;
 	private JMenu menuFichier, menuOptions, menuHelp;
 	private JMenuItem quitter, aPropos, reportBug, changement, reset, petitReset;
-	private JCheckBoxMenuItem description, transition;
+	private JCheckBoxMenuItem description, transition, retrait;
 	private JMenuBar menuBar;
 	private HintTextField recherche;
 	private JLabel stats, etape;
@@ -53,6 +53,7 @@ public class Interface extends JFrame {
 		// Paramètres basiques de la fenêtre
 		setDefaultCloseOperation(DO_NOTHING_ON_CLOSE);
 		setSize(new Dimension(1200, 700));
+		//TODO permettre le resizable
 		setResizable(false);
 		setLocationRelativeTo(null);
 		setIconImage(new ImageIcon(this.getClass().getResource("/img/Elements/Icone.png")).getImage());
@@ -102,10 +103,13 @@ public class Interface extends JFrame {
 		description.setToolTipText("Affiche la vitalité, les PA, les PM, les résistances et les zones de chaque monstre.");
 		transition = new JCheckBoxMenuItem("Activer le changement d'étape");
 		transition.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_C, Toolkit.getDefaultToolkit().getMenuShortcutKeyMask()));
-		transition.setToolTipText("<html>Lorsque l'étape actuelle est complétée, on passe automatiquement<br>à la suivante en retirant une capture de chaque monstre.</html>");
-
+		transition.setToolTipText("<html>Lorsque l'étape actuelle est complétée, on passe<br>automatiquement à la suivante.</html>");
+		retrait = new JCheckBoxMenuItem("Activer le retrait de capture automatique");
+		retrait.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_H, Toolkit.getDefaultToolkit().getMenuShortcutKeyMask()));
+		retrait.setToolTipText("<html>Lorsque l'étape actuelle est complétée, on retire<br>automatiquement les monstres de celle-ci.</html>");
 		menuOptions.add(description);
 		menuOptions.add(transition);
+		menuOptions.add(retrait);
 		menuBar.add(menuOptions);
 
 		menuHelp = new JMenu("        ?        ");
@@ -251,6 +255,10 @@ public class Interface extends JFrame {
 	
 	public JCheckBoxMenuItem getTransition(){
 		return transition;
+	}
+	
+	public JCheckBoxMenuItem getRetrait(){
+		return retrait;
 	}
 	
 	public JMenuItem getPetitReset(){

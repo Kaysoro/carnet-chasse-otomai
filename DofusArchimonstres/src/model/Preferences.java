@@ -9,6 +9,7 @@ public class Preferences {
 
 	private static Boolean isDetailed = null;
 	private static Boolean isChanged = null;
+	private static Boolean isRemoved = null;
 	private static Etape etapeActuelle = null;
 
 	public static boolean isDetailed(){
@@ -29,6 +30,26 @@ public class Preferences {
 		}
 
 		return isDetailed;
+	}
+	
+	public static boolean isRemoved(){
+
+		if (isRemoved == null){
+			Connexion connexion = Connexion.getInstance();
+			Connection connection = connexion.getConnection();
+
+			try {
+				PreparedStatement attributionClasse = connection.prepareStatement("SELECT isRemoved FROM preferences");
+				ResultSet resultSet = attributionClasse.executeQuery();
+
+				resultSet.next();
+				isRemoved = resultSet.getBoolean("isRemoved");
+			} catch (SQLException e) {
+				e.printStackTrace();
+			}
+		}
+
+		return isRemoved;
 	}
 	
 	public static boolean isChanged(){
@@ -92,6 +113,22 @@ public class Preferences {
 		}
 	}
 
+	public static void setIsRemoved(boolean isRemoved){
+		Connexion connexion = Connexion.getInstance();
+		Connection connection = connexion.getConnection();
+
+		try{
+			PreparedStatement preparedStatement = connection.prepareStatement("UPDATE preferences SET isRemoved = ?");
+
+			preparedStatement.setBoolean(1, isRemoved);
+			preparedStatement.executeUpdate();
+
+			Preferences.isRemoved = isRemoved;
+		} catch (SQLException e) {
+			e.printStackTrace();
+		}
+	}
+	
 	public static void setIsDetailed(boolean isDetailed){
 		Connexion connexion = Connexion.getInstance();
 		Connection connection = connexion.getConnection();
