@@ -357,6 +357,7 @@ public class Gestionnaire implements ActionListener, KeyListener, WindowListener
 		if (o == graphic.getQuitter()) {
 			connexion.close();
 			graphic.dispose();
+			System.exit(0);
 		}
 
 		//Transition
@@ -909,6 +910,7 @@ public class Gestionnaire implements ActionListener, KeyListener, WindowListener
 
 		connexion.close();
 		graphic.dispose();
+		System.exit(0);
 	}
 
 	public void keyReleased(KeyEvent e) {

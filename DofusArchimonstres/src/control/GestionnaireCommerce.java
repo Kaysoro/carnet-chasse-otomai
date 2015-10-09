@@ -15,6 +15,8 @@ public class GestionnaireCommerce {
 		this.gestionnaire = gestionnaire;
 		this.joueur = joueur;
 		this.other = other;
+		
+		graphic = new InterfaceCommerce();
 	}
 
 	public Gestionnaire getGestionnaire() {
