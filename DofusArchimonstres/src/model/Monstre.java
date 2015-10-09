@@ -71,6 +71,10 @@ public class Monstre implements Comparable<Monstre>{
 		this.etapeAssocie = etapeAssocie;
 	}
 
+	public static Monstre getMonstreJoueur(String nom, int nombrePossede){
+		return new Monstre(nom, "", null, "", "", "", nombrePossede, "", "", "", "", "");
+	}
+
 	public static List<Monstre> getMonstres(){
 
 		if (monstres == null){
@@ -135,7 +139,7 @@ public class Monstre implements Comparable<Monstre>{
 
 					if (monstre.getNombrePossede() > 0)
 						etape.incrementerNombre();
-					
+
 					for(Zone zone : zones){
 
 						zone.ajouterMonstre(monstre);
@@ -223,6 +227,15 @@ public class Monstre implements Comparable<Monstre>{
 		nombrePossede = 0;
 	}
 
+	public static String exporterMonstres(){
+		StringBuilder st = new StringBuilder(Preferences.getNom() + ";" + Preferences.getEtapeActuelle().getNom().substring(6) + ";\n");
+		for(Monstre monstre : getMonstres()){
+			st.append(monstre.getNom() + ";");
+			st.append(monstre.getNombrePossede() + ";\n");
+		}
+		return st.toString();
+	}
+
 	public String getNom() {
 		return nom;
 	}
@@ -294,5 +307,9 @@ public class Monstre implements Comparable<Monstre>{
 				+ "\nRes%N : " + resNeutre + " // Res%T : " +
 				resTerre + " // Res%F : " + resFeu + " // Res%E : "
 				+ resEau + " // Res%A : " + resAir;
+	}
+
+	public boolean equals(Monstre monstre){
+		return getNom().equals(monstre.getNom());
 	}
 }

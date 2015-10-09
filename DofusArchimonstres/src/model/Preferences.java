@@ -7,11 +7,32 @@ import java.sql.SQLException;
 
 public class Preferences {
 
+	private static String nom = null;
 	private static Boolean isDetailed = null;
 	private static Boolean isChanged = null;
 	private static Boolean isRemoved = null;
 	private static Etape etapeActuelle = null;
 
+	public static String getNom(){
+
+		if (nom == null){
+			Connexion connexion = Connexion.getInstance();
+			Connection connection = connexion.getConnection();
+
+			try {
+				PreparedStatement attributionClasse = connection.prepareStatement("SELECT nom FROM preferences");
+				ResultSet resultSet = attributionClasse.executeQuery();
+
+				resultSet.next();
+				nom = resultSet.getString("nom");
+			} catch (SQLException e) {
+				e.printStackTrace();
+			}
+		}
+
+		return nom;
+	}
+	
 	public static boolean isDetailed(){
 
 		if (isDetailed == null){
@@ -113,6 +134,22 @@ public class Preferences {
 		}
 	}
 
+	public static void setNom(String name){
+		Connexion connexion = Connexion.getInstance();
+		Connection connection = connexion.getConnection();
+
+		try{
+			PreparedStatement preparedStatement = connection.prepareStatement("UPDATE preferences SET nom = ?");
+
+			preparedStatement.setString(1, name);
+			preparedStatement.executeUpdate();
+
+			nom = name;
+		} catch (SQLException e) {
+			e.printStackTrace();
+		}
+	}
+	
 	public static void setIsRemoved(boolean isRemoved){
 		Connexion connexion = Connexion.getInstance();
 		Connection connection = connexion.getConnection();

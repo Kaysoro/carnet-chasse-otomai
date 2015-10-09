@@ -19,21 +19,29 @@ import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.awt.event.WindowEvent;
 import java.awt.event.WindowListener;
+import java.io.BufferedReader;
+import java.io.FileReader;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.text.Normalizer;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import javax.swing.BorderFactory;
 import javax.swing.ImageIcon;
 import javax.swing.JButton;
+import javax.swing.JFileChooser;
 import javax.swing.JLabel;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
+import javax.swing.filechooser.FileNameExtensionFilter;
 
+import model.Joueur;
 import model.Connexion;
 import model.Etape;
 import model.Monstre;
@@ -105,6 +113,8 @@ public class Gestionnaire implements ActionListener, KeyListener, WindowListener
 		graphic.getEtape().setText("Étape Actuelle : " + Preferences.getEtapeActuelle().getNom().substring(6));
 
 		// Listeners du menu
+		graphic.getImporter().addActionListener(this);
+		graphic.getExporter().addActionListener(this);
 		graphic.getQuitter().addActionListener(this);
 		graphic.getAPropos().addActionListener(this);
 		graphic.getChangement().addActionListener(this);
@@ -244,7 +254,7 @@ public class Gestionnaire implements ActionListener, KeyListener, WindowListener
 			Preferences.setEtapeActuelle(etape);
 			graphic.getEtape().setText("Étape Actuelle : " + Preferences.getEtapeActuelle().getNom().substring(6));
 			majStats();
-			
+
 			if (graphic.getPanelChoix().isEtapeIsSelected())
 				etape.getButton().doClick();
 		}
@@ -260,6 +270,88 @@ public class Gestionnaire implements ActionListener, KeyListener, WindowListener
 			oldSource.doClick();
 			return;
 		}
+
+		// Importer
+		if (o == graphic.getImporter()){
+			JFileChooser fileChooser = new JFileChooser();
+			fileChooser.setFileFilter(new FileNameExtensionFilter("Fichier de partage du carnet de chasse d'Otomaï", "fpcco"));
+			fileChooser.setAcceptAllFileFilterUsed(false);
+
+			if (fileChooser.showOpenDialog(graphic) == JFileChooser.APPROVE_OPTION) {
+				if (!fileChooser.getSelectedFile().exists()){
+					JOptionPane.showMessageDialog(graphic, "Ce fichier n'existe pas.", "Erreur", JOptionPane.ERROR_MESSAGE);
+					return;
+				}
+
+				try {
+					BufferedReader br = new BufferedReader(new FileReader(fileChooser.getSelectedFile()));
+					String line =  br.readLine();
+					String cvsSplitBy = ";";
+
+					String[] data = line.split(cvsSplitBy);
+					String nom = data[0];
+					Etape etape = Etape.getEtapes().get(Integer.parseInt(data[1]) - 1);
+					List<Monstre> monstresEnFace = new ArrayList<Monstre>();
+					Map<String, Monstre> monstresdIci = new HashMap<String, Monstre>();
+					
+					for(Monstre monstre : Monstre.getMonstres())
+						monstresdIci.put(monstre.getNom(), monstre);
+
+					while ((line = br.readLine()) != null) {
+						data = line.split(cvsSplitBy);
+						Monstre monstre = Monstre.getMonstreJoueur(data[0], Integer.parseInt(data[1]));
+						monstresEnFace.add(monstre);
+
+
+						if (monstresdIci.get(monstre.getNom()) == null){
+							JOptionPane.showMessageDialog(graphic, "Erreur : fichier corrompu.", "Erreur", JOptionPane.ERROR_MESSAGE);
+							br.close();
+							return;
+						}
+					}
+
+					br.close();
+
+					if (monstresEnFace.size() != monstresdIci.keySet().size()){
+						JOptionPane.showMessageDialog(graphic, "Erreur : fichier corrompu.", "Erreur", JOptionPane.ERROR_MESSAGE);
+						return;
+					}
+					
+					// On a trouvé la correspondance du monstre
+					Joueur joueur = new Joueur(Preferences.getNom(), Preferences.getEtapeActuelle(), Monstre.getMonstres());
+					Joueur other = new Joueur(nom, etape, monstresEnFace);
+					new GestionnaireCommerce(this, joueur, other);
+
+				} catch (Exception e1) {
+					JOptionPane.showMessageDialog(graphic, "Erreur : fichier corrompu.", "Erreur", JOptionPane.ERROR_MESSAGE);
+				}
+			}
+		}
+
+		// Exporter
+		if (o == graphic.getExporter()){
+			JFileChooser fileChooser = new JFileChooser();
+			fileChooser.setFileFilter(new FileNameExtensionFilter("Fichier de partage du carnet de chasse d'Otomaï", "fpcco"));
+			fileChooser.setAcceptAllFileFilterUsed(false);
+
+			if (fileChooser.showSaveDialog(graphic) == JFileChooser.APPROVE_OPTION) {
+
+				try {
+					FileWriter fw;
+					if (!fileChooser.getSelectedFile().exists())
+						fw = new FileWriter(fileChooser.getSelectedFile() + ".fpcco");
+					else
+						fw = new FileWriter(fileChooser.getSelectedFile());
+
+					fw.write(Monstre.exporterMonstres());
+					fw.close();
+					JOptionPane.showMessageDialog(graphic, "Exportation effectuée.", "Exportation", JOptionPane.DEFAULT_OPTION);
+				} catch (IOException e1) {
+					JOptionPane.showMessageDialog(graphic, "Une erreur est survenue lors de l'exportation.", "Erreur", JOptionPane.ERROR_MESSAGE);
+				}
+			}
+		}
+
 
 		// quitter
 		if (o == graphic.getQuitter()) {
@@ -663,7 +755,7 @@ public class Gestionnaire implements ActionListener, KeyListener, WindowListener
 			zone.incrementerNombre();
 
 		changementAuto();
-		
+
 		updateMonsterButtons(etape, zones);
 	}
 

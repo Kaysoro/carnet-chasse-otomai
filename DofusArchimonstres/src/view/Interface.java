@@ -10,8 +10,6 @@ import java.awt.Container;
 import java.awt.Dimension;
 import java.awt.Font;
 import java.awt.GridLayout;
-import java.awt.Toolkit;
-import java.awt.event.KeyEvent;
 
 import javax.swing.ImageIcon;
 import javax.swing.JButton;
@@ -38,8 +36,8 @@ public class Interface extends JFrame {
 	private JPanel panelOuest, panelEst, panelRecherche, panelNordEst, panelStat, panelInfo, panelMonstres;
 	private JPanelChoix panelChoix;
 	private JScrollPane scrollClasse, scrollMonstre;
-	private JMenu menuFichier, menuOptions, menuHelp;
-	private JMenuItem quitter, aPropos, reportBug, changement, reset, petitReset;
+	private JMenu menuFichier, menuCaptures, menuOptions, menuHelp;
+	private JMenuItem quitter, aPropos, reportBug, changement, reset, petitReset, importer, exporter;
 	private JCheckBoxMenuItem description, transition, retrait;
 	private JMenuBar menuBar;
 	private HintTextField recherche;
@@ -78,34 +76,47 @@ public class Interface extends JFrame {
 		menuBar = new JMenuBar();
 		setJMenuBar(menuBar);
 		menuFichier = new JMenu("   Fichier   ");
-		changement = new JMenuItem("Changer d'étape actuelle");
-		changement.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_C, Toolkit.getDefaultToolkit().getMenuShortcutKeyMask()));
-		changement.setToolTipText("<html>L'étape actuelle influe sur les statistiques :<br> les étapes précédentes sont ignorées et non comptabilisées.</html>");
-		reset = new JMenuItem("Réinitialiser les captures");
-		reset.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_R, Toolkit.getDefaultToolkit().getMenuShortcutKeyMask()));
-		reset.setToolTipText("Remet à zéro l'ensemble des captures des monstres, quelque soit leur type.");
-		petitReset = new JMenuItem("Retirer une capture d'une fourchette d'étapes");
-		petitReset.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_E, Toolkit.getDefaultToolkit().getMenuShortcutKeyMask()));
-		petitReset.setToolTipText("Retire, si possible, une capture entre deux étapes données.");
+		importer =  new JMenuItem("Comparer ses données");
+		importer.setAccelerator(KeyStroke.getKeyStroke("control J"));
+		importer.setToolTipText("<html>Liste les potentiels échanges que vous pouvez <br>faire avec un autre joueur.</html>");
+		exporter =  new JMenuItem("Exporter ses données");
+		exporter.setAccelerator(KeyStroke.getKeyStroke("control E"));
+		exporter.setToolTipText("<html>Exporte vos captures manquantes, doublons,<br> afin de pouvoir échanger avec un autre joueur.</html>");
 		quitter =  new JMenuItem("Quitter");
-		quitter.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_Q, Toolkit.getDefaultToolkit().getMenuShortcutKeyMask()));
+		quitter.setAccelerator(KeyStroke.getKeyStroke("control Q"));
 		quitter.setToolTipText("Termine l'application.");
 
-		menuFichier.add(changement);
-		menuFichier.add(petitReset);
-		menuFichier.add(reset);
+		menuFichier.add(importer);
+		menuFichier.add(exporter);
 		menuFichier.add(quitter);
 		menuBar.add(menuFichier);
 
+		menuCaptures = new JMenu("  Captures  ");
+		changement = new JMenuItem("Changer d'étape actuelle");
+		changement.setAccelerator(KeyStroke.getKeyStroke("control C"));
+		changement.setToolTipText("<html>L'étape actuelle influe sur les statistiques :<br> les étapes précédentes sont ignorées et non comptabilisées.</html>");
+		reset = new JMenuItem("Réinitialiser les captures");
+		reset.setAccelerator(KeyStroke.getKeyStroke("control R"));
+		reset.setToolTipText("Remet à zéro l'ensemble des captures des monstres, quelque soit leur type.");
+		petitReset = new JMenuItem("Retirer une capture d'une fourchette d'étapes");
+		petitReset.setAccelerator(KeyStroke.getKeyStroke("control F"));
+		petitReset.setToolTipText("Retire, si possible, une capture entre deux étapes données.");
+		
+		menuCaptures.add(changement);
+		menuCaptures.add(petitReset);
+		menuCaptures.add(reset);
+		menuBar.add(menuCaptures);
+		
+		
 		menuOptions = new JMenu("   Options   ");
 		description = new JCheckBoxMenuItem("Afficher les descriptions des monstres");
-		description.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_D, Toolkit.getDefaultToolkit().getMenuShortcutKeyMask()));
+		description.setAccelerator(KeyStroke.getKeyStroke("control D"));
 		description.setToolTipText("Affiche la vitalité, les PA, les PM, les résistances et les zones de chaque monstre.");
 		transition = new JCheckBoxMenuItem("Activer le changement d'étape");
-		transition.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_C, Toolkit.getDefaultToolkit().getMenuShortcutKeyMask()));
+		transition.setAccelerator(KeyStroke.getKeyStroke("control alt C"));
 		transition.setToolTipText("<html>Lorsque l'étape actuelle est complétée, on passe<br>automatiquement à la suivante.</html>");
 		retrait = new JCheckBoxMenuItem("Activer le retrait de capture automatique");
-		retrait.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_H, Toolkit.getDefaultToolkit().getMenuShortcutKeyMask()));
+		retrait.setAccelerator(KeyStroke.getKeyStroke("control alt R"));
 		retrait.setToolTipText("<html>Lorsque l'étape actuelle est complétée, on retire<br>automatiquement les monstres de celle-ci.</html>");
 		menuOptions.add(description);
 		menuOptions.add(transition);
@@ -114,11 +125,11 @@ public class Interface extends JFrame {
 
 		menuHelp = new JMenu("        ?        ");
 		aPropos = new JMenuItem("À propos de...");
-		aPropos.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_A, Toolkit.getDefaultToolkit().getMenuShortcutKeyMask()));
+		aPropos.setAccelerator(KeyStroke.getKeyStroke("control A"));
 		aPropos.setToolTipText("Détails sur l'application et sur le créateur.");
 
 		reportBug = new JMenuItem("Reporter un bug");
-		reportBug.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_B, Toolkit.getDefaultToolkit().getMenuShortcutKeyMask()));
+		reportBug.setAccelerator(KeyStroke.getKeyStroke("control B"));
 		reportBug.setToolTipText("<html>Redirige vers une page du forum La Feuille Verte.<br> N'hésitez pas à relever d'éventuels bugs afin d'améliorer l'application !</html>");
 
 		menuHelp.add(aPropos);
@@ -189,6 +200,14 @@ public class Interface extends JFrame {
 
 		// fenêtre visible
 		setVisible(true);
+	}
+
+	public JMenuItem getImporter() {
+		return importer;
+	}
+
+	public JMenuItem getExporter() {
+		return exporter;
 	}
 
 	public void setScrollClasse(JScrollPane pane){
